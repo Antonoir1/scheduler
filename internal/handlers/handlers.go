@@ -26,6 +26,7 @@ func RegisterHandlers(router *gin.Engine, jobs *service.Service, loggers ...zero
 	router.GET("/jobs/:id/results", getResult(jobs, logger))
 }
 
+// listJobs handles GET /jobs.
 func listJobs(jobs *service.Service, logger zerolog.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		logger.Info().Str("handler", "list_jobs").Msg("handler called")
@@ -39,6 +40,7 @@ func listJobs(jobs *service.Service, logger zerolog.Logger) gin.HandlerFunc {
 	}
 }
 
+// createJob handles POST /jobs.
 func createJob(jobs *service.Service, logger zerolog.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		logger.Info().Str("handler", "create_job").Msg("handler called")
@@ -58,6 +60,7 @@ func createJob(jobs *service.Service, logger zerolog.Logger) gin.HandlerFunc {
 	}
 }
 
+// getJob handles GET /jobs/:id without embedding the latest result.
 func getJob(jobs *service.Service, logger zerolog.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		logger.Info().Str("handler", "get_job").Str("job_id", c.Param("id")).Msg("handler called")
@@ -76,6 +79,7 @@ func getJob(jobs *service.Service, logger zerolog.Logger) gin.HandlerFunc {
 	}
 }
 
+// updateJob handles PUT /jobs/:id and replaces its schedule configuration.
 func updateJob(jobs *service.Service, logger zerolog.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		logger.Info().Str("handler", "update_job").Str("job_id", c.Param("id")).Msg("handler called")
@@ -100,6 +104,7 @@ func updateJob(jobs *service.Service, logger zerolog.Logger) gin.HandlerFunc {
 	}
 }
 
+// deleteJob handles DELETE /jobs/:id.
 func deleteJob(jobs *service.Service, logger zerolog.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		logger.Info().Str("handler", "delete_job").Str("job_id", c.Param("id")).Msg("handler called")
@@ -118,6 +123,7 @@ func deleteJob(jobs *service.Service, logger zerolog.Logger) gin.HandlerFunc {
 	}
 }
 
+// getResult handles GET /jobs/:id/results.
 func getResult(jobs *service.Service, logger zerolog.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		logger.Info().Str("handler", "get_job_result").Str("job_id", c.Param("id")).Msg("handler called")
@@ -142,6 +148,7 @@ func getResult(jobs *service.Service, logger zerolog.Logger) gin.HandlerFunc {
 	}
 }
 
+// publicJobs converts internal jobs into API response models.
 func publicJobs(jobs []*internaljob.Job) []*scheduler.Job {
 	result := make([]*scheduler.Job, 0, len(jobs))
 	for _, item := range jobs {
@@ -150,6 +157,7 @@ func publicJobs(jobs []*internaljob.Job) []*scheduler.Job {
 	return result
 }
 
+// publicJob converts one internal job into an API response model.
 func publicJob(item *internaljob.Job) *scheduler.Job {
 	if item == nil {
 		return nil
@@ -157,6 +165,7 @@ func publicJob(item *internaljob.Job) *scheduler.Job {
 	return &scheduler.Job{ID: item.ID, Name: item.Name, Schedule: item.Schedule, WebhookURL: item.WebhookURL, Parameters: item.Parameters, Payload: item.Payload, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}
 }
 
+// publicResult converts an internal result into an API response model.
 func publicResult(item *internaljob.JobResult) *scheduler.JobResult {
 	if item == nil {
 		return nil

@@ -9,6 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
+// Store persists scheduled jobs and their latest execution results.
 type Store interface {
 	CreateJob(context.Context, *job.Job) error
 	ListJobs(context.Context) ([]*job.Job, error)
@@ -18,11 +19,13 @@ type Store interface {
 	SaveResult(context.Context, string, *job.JobResult) error
 }
 
+// MongoStore stores scheduler data in a MongoDB collection.
 type MongoStore struct {
 	client     *mongo.Client
 	collection *mongo.Collection
 }
 
+// NewMongoStore connects to MongoDB and selects the configured collection.
 func NewMongoStore(ctx context.Context, uri, database, collection string) (*MongoStore, error) {
 	client, err := mongo.Connect(options.Client().ApplyURI(uri))
 	if err != nil {
@@ -35,15 +38,18 @@ func NewMongoStore(ctx context.Context, uri, database, collection string) (*Mong
 	return &MongoStore{client: client, collection: client.Database(database).Collection(collection)}, nil
 }
 
+// Close disconnects the store from MongoDB.
 func (s *MongoStore) Close(ctx context.Context) error {
 	return s.client.Disconnect(ctx)
 }
 
+// CreateJob inserts a new scheduled job.
 func (s *MongoStore) CreateJob(ctx context.Context, job *job.Job) error {
 	_, err := s.collection.InsertOne(ctx, job)
 	return err
 }
 
+// GetJob retrieves a scheduled job by ID.
 func (s *MongoStore) GetJob(ctx context.Context, id string) (*job.Job, error) {
 	var result job.Job
 	if err := s.collection.FindOne(ctx, bson.M{"_id": id}).Decode(&result); err != nil {
@@ -52,6 +58,7 @@ func (s *MongoStore) GetJob(ctx context.Context, id string) (*job.Job, error) {
 	return &result, nil
 }
 
+// ListJobs retrieves every scheduled job.
 func (s *MongoStore) ListJobs(ctx context.Context) ([]*job.Job, error) {
 	cursor, err := s.collection.Find(ctx, bson.M{})
 	if err != nil {
@@ -65,6 +72,7 @@ func (s *MongoStore) ListJobs(ctx context.Context) ([]*job.Job, error) {
 	return jobs, nil
 }
 
+// UpdateJob replaces an existing scheduled job.
 func (s *MongoStore) UpdateJob(ctx context.Context, job *job.Job) error {
 	result, err := s.collection.ReplaceOne(ctx, bson.M{"_id": job.ID}, job)
 	if err != nil {
@@ -76,6 +84,7 @@ func (s *MongoStore) UpdateJob(ctx context.Context, job *job.Job) error {
 	return nil
 }
 
+// DeleteJob removes a scheduled job by ID.
 func (s *MongoStore) DeleteJob(ctx context.Context, id string) error {
 	result, err := s.collection.DeleteOne(ctx, bson.M{"_id": id})
 	if err != nil {
@@ -87,6 +96,7 @@ func (s *MongoStore) DeleteJob(ctx context.Context, id string) error {
 	return nil
 }
 
+// SaveResult overwrites the latest result for a scheduled job.
 func (s *MongoStore) SaveResult(ctx context.Context, id string, result *job.JobResult) error {
 	_, err := s.collection.UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$set": bson.M{
 		"last_result": result,
