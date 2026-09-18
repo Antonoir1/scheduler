@@ -194,7 +194,8 @@ func (s *Service) execute(id string) {
 			s.logger.Error().Err(requestErr).Str("job_id", id).Msg("call job webhook")
 		} else {
 			result.StatusCode = response.StatusCode
-			result.Response, _ = io.ReadAll(io.LimitReader(response.Body, 1<<20))
+			responseBody, _ := io.ReadAll(io.LimitReader(response.Body, 1<<20))
+			result.Response = string(responseBody)
 			_ = response.Body.Close()
 		}
 	} else {

@@ -1,9 +1,6 @@
 package scheduler
 
-import (
-	"encoding/json"
-	"time"
-)
+import "time"
 
 // CreateJobRequest contains the configuration for creating or updating a job.
 type CreateJobRequest struct {
@@ -30,9 +27,9 @@ type Job struct {
 
 // JobResult contains the latest webhook execution result for a job.
 type JobResult struct {
-	JobID      string          `json:"job_id"`
-	StatusCode int             `json:"status_code"`
-	Response   json.RawMessage `json:"response"`
-	Error      string          `json:"error,omitempty"`
-	ExecutedAt time.Time       `json:"executed_at"`
+	JobID      string    `json:"job_id"`
+	StatusCode int       `json:"status_code"`
+	Response   string    `json:"response"`
+	Error      string    `json:"error,omitempty"`
+	ExecutedAt time.Time `json:"executed_at"`
 }

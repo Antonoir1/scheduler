@@ -1,9 +1,6 @@
 package job
 
-import (
-	"encoding/json"
-	"time"
-)
+import "time"
 
 // Job is the internal representation persisted by the scheduler.
 type Job struct {
@@ -21,9 +18,9 @@ type Job struct {
 
 // JobResult is the internal representation of the latest webhook execution.
 type JobResult struct {
-	JobID      string          `bson:"job_id"`
-	StatusCode int             `bson:"status_code"`
-	Response   json.RawMessage `bson:"response"`
-	Error      string          `bson:"error,omitempty"`
-	ExecutedAt time.Time       `bson:"executed_at"`
+	JobID      string    `bson:"job_id"`
+	StatusCode int       `bson:"status_code"`
+	Response   string    `bson:"response"`
+	Error      string    `bson:"error,omitempty"`
+	ExecutedAt time.Time `bson:"executed_at"`
 }
