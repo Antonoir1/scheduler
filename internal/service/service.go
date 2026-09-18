@@ -78,7 +78,7 @@ func (s *Service) Stop() {
 // CreateJob persists a job and registers its cron schedule.
 func (s *Service) CreateJob(ctx context.Context, request scheduler.CreateJobRequest) (*job.Job, error) {
 	now := time.Now().UTC()
-	newJob := &job.Job{ID: newID(), Name: request.Name, Schedule: request.Schedule, WebhookURL: request.WebhookURL, Parameters: request.Parameters, Payload: request.Payload, CreatedAt: now, UpdatedAt: now}
+	newJob := &job.Job{ID: newID(), Name: request.Name, Schedule: request.Schedule, WebhookURL: request.WebhookURL, Parameters: request.Parameters, Headers: request.Headers, Payload: request.Payload, CreatedAt: now, UpdatedAt: now}
 	if _, err := cron.ParseStandard(newJob.Schedule); err != nil {
 		wrappedErr := fmt.Errorf("invalid schedule: %w", err)
 		s.logger.Error().Err(wrappedErr).Str("schedule", newJob.Schedule).Msg("create job")
@@ -130,6 +130,7 @@ func (s *Service) UpdateJob(ctx context.Context, id string, request scheduler.Cr
 	updatedJob.Schedule = request.Schedule
 	updatedJob.WebhookURL = request.WebhookURL
 	updatedJob.Parameters = request.Parameters
+	updatedJob.Headers = request.Headers
 	updatedJob.Payload = request.Payload
 	updatedJob.UpdatedAt = time.Now().UTC()
 	if err := s.store.UpdateJob(ctx, updatedJob); err != nil {
@@ -181,11 +182,12 @@ func (s *Service) execute(id string) {
 		s.logger.Error().Err(err).Str("job_id", id).Msg("load job for execution")
 		return
 	}
-	body, _ := json.Marshal(map[string]any{"parameters": internalJob.Parameters, "payload": internalJob.Payload})
-	request, err := http.NewRequestWithContext(ctx, http.MethodPost, internalJob.WebhookURL, bytes.NewReader(body))
+	request, err := http.NewRequestWithContext(ctx, http.MethodPost, internalJob.WebhookURL, bytes.NewReader([]byte(internalJob.Payload)))
 	result := &job.JobResult{JobID: internalJob.ID, ExecutedAt: time.Now().UTC()}
 	if err == nil {
-		request.Header.Set("Content-Type", "application/json")
+		for key, value := range internalJob.Headers {
+			request.Header.Set(key, value)
+		}
 		response, requestErr := s.client.Do(request)
 		if requestErr != nil {
 			result.Error = requestErr.Error()

@@ -29,7 +29,8 @@ curl -X POST http://localhost:8080/jobs -H "Content-Type: application/json" -d '
 	"schedule": "0 2 * * *",
 	"webhook_url": "https://example.test/hooks/sync",
 	"parameters": {"tenant": "acme"},
-	"payload": {"full": true}
+	"headers": {"Content-Type": "application/json"},
+	"payload": "{\"full\":true}"
 }'
 ```
 
@@ -42,7 +43,7 @@ Endpoints:
 - `DELETE /jobs/:id` deletes a job and removes its cron schedule.
 - `GET /jobs/:id/results` gets only the latest result. It returns `404` when the job has not executed yet.
 
-Each webhook receives `{ "parameters": {}, "payload": {} }` as JSON. After the result is saved, the service publishes the result JSON on `scheduler.job.executed`.
+Each webhook receives the `payload` string as its raw request body, with the configured `headers`. Parameters are stored job metadata and are not added to the body. After the result is saved, the service publishes the result JSON on `scheduler.job.executed`.
 
 ### Go client
 
@@ -68,11 +69,11 @@ Build the command-line client with `go build -o scheduler-client ./cmd/client`, 
 
 ```sh
 scheduler-client -server http://localhost:8080 list
-scheduler-client -server http://localhost:8080 create -name "nightly sync" -schedule "0 2 * * *" -webhook-url "https://example.test/hooks/sync" -parameters '{"tenant":"acme"}' -payload '{"full":true}'
+scheduler-client -server http://localhost:8080 create -name "nightly sync" -schedule "0 2 * * *" -webhook-url "https://example.test/hooks/sync" -parameters '{"tenant":"acme"}' -headers '{"Content-Type":"application/json"}' -payload '{"full":true}'
 scheduler-client -server http://localhost:8080 get JOB_ID
 scheduler-client -server http://localhost:8080 update JOB_ID -name "updated sync" -schedule "0 3 * * *" -webhook-url "https://example.test/hooks/sync"
 scheduler-client -server http://localhost:8080 result JOB_ID
 scheduler-client -server http://localhost:8080 delete JOB_ID
 ```
 
-The CLI prints successful responses as indented JSON. `create` and `update` accept `-parameters` and `-payload` as JSON objects.
+The CLI prints successful responses as indented JSON. `create` and `update` accept `-parameters` and `-headers` as JSON objects, and `-payload` as the raw webhook body string.

@@ -115,7 +115,8 @@ func parseJobRequest(name string, args []string) (scheduler.CreateJobRequest, er
 	schedule := flags.String("schedule", "", "five-field cron expression")
 	webhookURL := flags.String("webhook-url", "", "webhook URL")
 	parameters := flags.String("parameters", "{}", "parameters as a JSON object")
-	payload := flags.String("payload", "{}", "payload as a JSON object")
+	headers := flags.String("headers", "{}", "webhook headers as a JSON object")
+	payload := flags.String("payload", "", "raw webhook request body")
 	if err := flags.Parse(args); err != nil {
 		return scheduler.CreateJobRequest{}, err
 	}
@@ -126,11 +127,11 @@ func parseJobRequest(name string, args []string) (scheduler.CreateJobRequest, er
 	if err != nil {
 		return scheduler.CreateJobRequest{}, err
 	}
-	parsedPayload, err := parseAnyMap(*payload, "payload")
+	parsedHeaders, err := parseStringMap(*headers, "headers")
 	if err != nil {
 		return scheduler.CreateJobRequest{}, err
 	}
-	return scheduler.CreateJobRequest{Name: *jobName, Schedule: *schedule, WebhookURL: *webhookURL, Parameters: parsedParameters, Payload: parsedPayload}, nil
+	return scheduler.CreateJobRequest{Name: *jobName, Schedule: *schedule, WebhookURL: *webhookURL, Parameters: parsedParameters, Headers: parsedHeaders, Payload: *payload}, nil
 }
 
 func requireID(command string, args []string) (string, error) {
@@ -142,14 +143,6 @@ func requireID(command string, args []string) (string, error) {
 
 func parseStringMap(value, name string) (map[string]string, error) {
 	result := make(map[string]string)
-	if err := json.Unmarshal([]byte(value), &result); err != nil {
-		return nil, fmt.Errorf("invalid %s JSON: %w", name, err)
-	}
-	return result, nil
-}
-
-func parseAnyMap(value, name string) (map[string]any, error) {
-	result := make(map[string]any)
 	if err := json.Unmarshal([]byte(value), &result); err != nil {
 		return nil, fmt.Errorf("invalid %s JSON: %w", name, err)
 	}

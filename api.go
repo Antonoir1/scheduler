@@ -11,7 +11,8 @@ type CreateJobRequest struct {
 	Schedule   string            `json:"schedule" binding:"required"`
 	WebhookURL string            `json:"webhook_url" binding:"required,url"`
 	Parameters map[string]string `json:"parameters"`
-	Payload    map[string]any    `json:"payload"`
+	Headers    map[string]string `json:"headers"`
+	Payload    string            `json:"payload"`
 }
 
 // Job is the public representation of a scheduled webhook job.
@@ -21,7 +22,8 @@ type Job struct {
 	Schedule   string            `json:"schedule"`
 	WebhookURL string            `json:"webhook_url"`
 	Parameters map[string]string `json:"parameters,omitempty"`
-	Payload    map[string]any    `json:"payload,omitempty"`
+	Headers    map[string]string `json:"headers,omitempty"`
+	Payload    string            `json:"payload,omitempty"`
 	CreatedAt  time.Time         `json:"created_at"`
 	UpdatedAt  time.Time         `json:"updated_at"`
 }

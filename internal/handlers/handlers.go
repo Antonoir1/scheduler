@@ -162,7 +162,7 @@ func publicJob(item *internaljob.Job) *scheduler.Job {
 	if item == nil {
 		return nil
 	}
-	return &scheduler.Job{ID: item.ID, Name: item.Name, Schedule: item.Schedule, WebhookURL: item.WebhookURL, Parameters: item.Parameters, Payload: item.Payload, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}
+	return &scheduler.Job{ID: item.ID, Name: item.Name, Schedule: item.Schedule, WebhookURL: item.WebhookURL, Parameters: item.Parameters, Headers: item.Headers, Payload: item.Payload, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}
 }
 
 // publicResult converts an internal result into an API response model.

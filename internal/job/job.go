@@ -12,7 +12,8 @@ type Job struct {
 	Schedule   string            `bson:"schedule"`
 	WebhookURL string            `bson:"webhook_url"`
 	Parameters map[string]string `bson:"parameters,omitempty"`
-	Payload    map[string]any    `bson:"payload,omitempty"`
+	Headers    map[string]string `bson:"headers,omitempty"`
+	Payload    string            `bson:"payload,omitempty"`
 	LastResult *JobResult        `bson:"last_result,omitempty"`
 	CreatedAt  time.Time         `bson:"created_at"`
 	UpdatedAt  time.Time         `bson:"updated_at"`
